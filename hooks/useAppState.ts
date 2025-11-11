@@ -1,6 +1,6 @@
 // FIX: Import React to fix "Cannot find namespace 'React'" error.
 import React, { useState, useEffect, useCallback } from 'react';
-import { AppState, Win, Settings } from '../types';
+import { AppState, Win, Settings, AIAnalysis } from '../types';
 import { CATEGORIES, INITIAL_APP_STATE, SEED_WINS } from '../constants';
 
 const STORAGE_KEY = 'theJoyJarState_v1';
@@ -15,6 +15,9 @@ const loadState = (): AppState => {
                 if(!('dailyReminder' in parsed.settings)) parsed.settings.dailyReminder = "none";
                 if (!parsed.categories || !Array.isArray(parsed.categories)) {
                     parsed.categories = CATEGORIES;
+                }
+                if (!parsed.analysisHistory || !Array.isArray(parsed.analysisHistory)) {
+                    parsed.analysisHistory = [];
                 }
                 delete parsed.settings.aiEnabled; 
                 delete parsed.settings.theme; 
@@ -76,6 +79,23 @@ export const useAppState = () => {
         }
     }, []);
 
+    const handleAddAnalysis = useCallback((newAnalysisData: Omit<AIAnalysis, 'id'>) => {
+        const newAnalysis = { ...newAnalysisData, id: new Date().toISOString() };
+        setAppState(prev => ({
+            ...prev,
+            analysisHistory: [newAnalysis, ...prev.analysisHistory],
+        }));
+    }, []);
+
+    const handleDeleteAnalysis = useCallback((id: string) => {
+        if (window.confirm("Are you sure you want to delete this analysis?")) {
+            setAppState(prev => ({
+                ...prev,
+                analysisHistory: prev.analysisHistory.filter(a => a.id !== id),
+            }));
+        }
+    }, []);
+
     const handleExport = () => {
         const dataStr = JSON.stringify(appState, null, 2);
         const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
@@ -97,13 +117,17 @@ export const useAppState = () => {
                 if (importedState.version === "1" && Array.isArray(importedState.wins) && importedState.settings) {
                     if (window.confirm(`Found ${importedState.wins.length} wins. Replace current data? (Cancel to merge)`)) {
                         if (!importedState.categories || !Array.isArray(importedState.categories)) { importedState.categories = CATEGORIES; }
+                        if (!importedState.analysisHistory) { importedState.analysisHistory = []; }
                         setAppState(importedState);
                     } else {
                          setAppState(prev => {
                             const existingIds = new Set(prev.wins.map(w => w.id));
                             const newWins = importedState.wins.filter((w: Win) => !existingIds.has(w.id));
                             const combinedCategories = Array.from(new Set([...prev.categories, ...(importedState.categories || [])])).sort();
-                            return { ...prev, wins: [...prev.wins, ...newWins], categories: combinedCategories };
+                            // Simple merge for analysis history, avoiding duplicates
+                            const existingAnalysisIds = new Set(prev.analysisHistory.map(a => a.id));
+                            const newAnalyses = (importedState.analysisHistory || []).filter((a: AIAnalysis) => !existingAnalysisIds.has(a.id));
+                            return { ...prev, wins: [...prev.wins, ...newWins], categories: combinedCategories, analysisHistory: [...prev.analysisHistory, ...newAnalyses] };
                          });
                     }
                     alert("Import successful!");
@@ -126,6 +150,8 @@ export const useAppState = () => {
         handleAddCategory,
         handleDeleteCategory,
         handleDeleteTag,
+        handleAddAnalysis,
+        handleDeleteAnalysis,
         handleExport,
         handleImport,
     };

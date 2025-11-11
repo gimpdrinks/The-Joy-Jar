@@ -10,6 +10,42 @@ export const INITIAL_SETTINGS: Settings = {
   dailyReminder: "none",
 };
 
+export const REFLECTION_PROMPTS_BY_CATEGORY = {
+  "Growth & Resilience": [
+    "What did this win teach me about my strength or consistency?",
+    "How did I show discipline even when I didn’t feel motivated?",
+    "What small risk or discomfort did I face, and how did I handle it?",
+    "How is this win proof that I’ve grown from who I was a year ago?",
+  ],
+  "Self-Compassion": [
+    "If a close friend had this same win, what would I say to them?",
+    "What part of myself deserves more kindness because of today?",
+    "How did I honor my needs instead of ignoring them?",
+    "Did I forgive myself for something recently? How did that feel?",
+  ],
+  "Purpose & Alignment": [
+    "Why does this win matter to me beyond results or metrics?",
+    "Does this align with the kind of life I want to build?",
+    "What values showed up in this moment (patience, honesty, courage)?",
+    "How does this connect to something bigger — faith, growth, or service?",
+  ],
+  "Energy & Boundaries": [
+    "What did this win cost me, and was it worth it?",
+    "Did I overextend myself to achieve this? How can I balance better next time?",
+    "What drained me today, and what recharged me?",
+    "Who or what supported me that I should thank or acknowledge?",
+  ],
+  "Joy & Gratitude": [
+    "What part of this win brought me quiet joy or peace?",
+    "What am I grateful for that made this moment possible?",
+    "How can I celebrate this in a small, meaningful way today?",
+    "If today were a chapter title in my story, what would it be?",
+  ]
+};
+
+export const ALL_REFLECTION_PROMPTS = Object.values(REFLECTION_PROMPTS_BY_CATEGORY).flat();
+
+
 const today = new Date();
 const formatDate = (date: Date): string => date.toISOString().split('T')[0];
 
@@ -83,6 +119,7 @@ export const INITIAL_APP_STATE: AppState = {
   wins: [],
   settings: INITIAL_SETTINGS,
   categories: CATEGORIES,
+  analysisHistory: [],
   createdAt: new Date().toISOString(),
   updatedAt: new Date().toISOString(),
   version: "1",

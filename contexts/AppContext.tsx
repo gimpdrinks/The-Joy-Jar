@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useMemo, ReactNode } from 'react';
-import { AppState, Win, Settings, TimeFilter } from '../types';
+import { AppState, Win, Settings, TimeFilter, AIAnalysis } from '../types';
 import { useAppState } from '../hooks/useAppState';
 
 type AppContextType = {
@@ -10,10 +10,20 @@ type AppContextType = {
     handleAddCategory: (name: string) => void;
     handleDeleteCategory: (name: string) => void;
     handleDeleteTag: (tagToDelete: string) => void;
+    handleAddAnalysis: (newAnalysisData: Omit<AIAnalysis, 'id'>) => void;
+    handleDeleteAnalysis: (id: string) => void;
     handleExport: () => void;
     handleImport: (event: React.ChangeEvent<HTMLInputElement>) => void;
+    
     isSettingsOpen: boolean;
     setIsSettingsOpen: React.Dispatch<React.SetStateAction<boolean>>;
+
+    // FIX: Add properties for ReflectionModal to the context type to fix type errors.
+    isReflectionModalOpen: boolean;
+    setIsReflectionModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
+    currentPrompt: string;
+    setCurrentPrompt: React.Dispatch<React.SetStateAction<string>>;
+
     timeFilter: TimeFilter;
     setTimeFilter: React.Dispatch<React.SetStateAction<TimeFilter>>;
     searchText: string;
@@ -32,10 +42,14 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     const { 
         appState, handleAddWin, handleDeleteWin, handleUpdateSettings, 
         handleAddCategory, handleDeleteCategory, handleDeleteTag,
+        handleAddAnalysis, handleDeleteAnalysis,
         handleExport, handleImport
     } = useAppState();
 
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+    // FIX: Add state management for the ReflectionModal.
+    const [isReflectionModalOpen, setIsReflectionModalOpen] = useState(false);
+    const [currentPrompt, setCurrentPrompt] = useState('');
     const [timeFilter, setTimeFilter] = useState<TimeFilter>('today');
     const [searchText, setSearchText] = useState('');
     const [tagFilter, setTagFilter] = useState('');
@@ -68,8 +82,12 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     const value = {
         appState, handleAddWin, handleDeleteWin, handleUpdateSettings,
         handleAddCategory, handleDeleteCategory, handleDeleteTag,
+        handleAddAnalysis, handleDeleteAnalysis,
         handleExport, handleImport,
         isSettingsOpen, setIsSettingsOpen,
+        // FIX: Provide reflection modal state and setters through the context.
+        isReflectionModalOpen, setIsReflectionModalOpen,
+        currentPrompt, setCurrentPrompt,
         timeFilter, setTimeFilter,
         searchText, setSearchText,
         tagFilter, setTagFilter,

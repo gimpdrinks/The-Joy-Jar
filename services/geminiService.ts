@@ -40,6 +40,7 @@ ${JSON.stringify(minimalWinsData, null, 2)}
     `;
 
     try {
+        // FIX: Updated to use the correct model name and API structure.
         const response = await ai.models.generateContent({
             model: 'gemini-2.5-flash',
             contents: prompt,

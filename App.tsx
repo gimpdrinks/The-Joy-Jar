@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { AppProvider, useAppContext } from './contexts/AppContext';
 import Header from './components/Header';
 import AddWinForm from './components/AddWinForm';
@@ -9,9 +9,49 @@ import StatsPanel from './components/StatsPanel';
 import Footer from './components/Footer';
 import SettingsModal from './components/SettingsModal';
 import { Win } from './types';
+// FIX: Import the ReflectionModal component to make it available in the app.
+import ReflectionModal from './components/ReflectionModal';
 
 const AppContent = () => {
-    const { filteredWins, handleDeleteWin } = useAppContext();
+    const { filteredWins, handleDeleteWin, appState } = useAppContext();
+    const { settings, wins } = appState;
+
+    useEffect(() => {
+      const scheduleNotification = () => {
+        if (!('Notification' in window) || Notification.permission !== 'granted' || settings.dailyReminder === 'none') {
+          return;
+        }
+
+        const hasWonToday = wins.some(win => new Date(win.date + 'T00:00:00').toDateString() === new Date().toDateString());
+        if (hasWonToday) {
+            return; 
+        }
+
+        const now = new Date();
+        const [hour, minute] = settings.dailyReminder === '9:00 AM' ? [9, 0] : [21, 0];
+        
+        let notificationTime = new Date();
+        notificationTime.setHours(hour, minute, 0, 0);
+
+        if (now > notificationTime) {
+            // If time has passed for today, schedule for tomorrow
+            notificationTime.setDate(notificationTime.getDate() + 1);
+        }
+
+        const timeoutId = setTimeout(() => {
+          new Notification('The Joy Jar', {
+            body: "Don't forget to celebrate a win today!",
+            icon: '/vite.svg',
+          });
+        }, notificationTime.getTime() - now.getTime());
+
+        return () => clearTimeout(timeoutId);
+      };
+      
+      const timeoutCleanup = scheduleNotification();
+      return timeoutCleanup;
+
+    }, [settings.dailyReminder, wins]);
     
     return (
         <>
@@ -60,6 +100,8 @@ const AppContent = () => {
             </div>
             <Footer />
             <SettingsModal />
+            {/* FIX: Render the ReflectionModal component. */}
+            <ReflectionModal />
         </>
     );
 };

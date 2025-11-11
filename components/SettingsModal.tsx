@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAppContext } from '../contexts/AppContext';
 import { CloseIcon, TrashIcon } from './Icons';
 import { getTagColorClasses } from '../utils/colorUtils';
@@ -17,10 +17,34 @@ const SettingsModal: React.FC = () => {
 
     const { settings, categories } = appState;
     const [newCategory, setNewCategory] = useState('');
+    const [notificationPermission, setNotificationPermission] = useState('default');
+
+    useEffect(() => {
+        if ('Notification' in window) {
+            setNotificationPermission(Notification.permission);
+        }
+    }, [isSettingsOpen]);
 
     if (!isSettingsOpen) return null;
 
     const onClose = () => setIsSettingsOpen(false);
+
+    const handleRequestNotificationPermission = async (time: '9:00 AM' | '9:00 PM' | 'none') => {
+        if (!('Notification' in window)) {
+            alert('This browser does not support desktop notifications.');
+            return;
+        }
+
+        if (time !== 'none' && Notification.permission === 'default') {
+            const permission = await Notification.requestPermission();
+            setNotificationPermission(permission);
+            if (permission === 'granted') {
+                 handleUpdateSettings({...settings, dailyReminder: time});
+            }
+        } else {
+             handleUpdateSettings({...settings, dailyReminder: time});
+        }
+    };
 
     const inputStyle = "w-full bg-white border border-slate-300 rounded-lg px-4 py-3 text-lg text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors";
 
@@ -41,8 +65,25 @@ const SettingsModal: React.FC = () => {
                 </div>
                 <div className="space-y-6 max-h-[70vh] overflow-y-auto pr-2">
                      <div>
-                        <label htmlFor="ritual-text" className="block text-base font-semibold text-slate-700">Celebration Ritual Text</label>
+                        <label htmlFor="ritual-text" className="block text-base font-semibold text-slate-700 mb-2">Celebration Ritual Text</label>
                         <input type="text" id="ritual-text" value={settings.ritualText} onChange={e => handleUpdateSettings({...settings, ritualText: e.target.value})} className={inputStyle} />
+                    </div>
+                    <hr/>
+                     <div>
+                        <h3 className="text-xl font-bold mb-3">Daily Reminder</h3>
+                        <div className="flex gap-2 flex-wrap">
+                            {(['none', '9:00 AM', '9:00 PM'] as const).map(time => (
+                                <button key={time} onClick={() => handleRequestNotificationPermission(time)} className={`px-4 py-2 text-base rounded-full transition-colors font-semibold ${settings.dailyReminder === time ? 'bg-indigo-600 text-white' : 'bg-slate-200 text-slate-700 hover:bg-slate-300'}`}>
+                                    {time}
+                                </button>
+                            ))}
+                        </div>
+                         {notificationPermission === 'denied' && (
+                            <p className="text-sm text-red-600 mt-2">Notifications are blocked. Please enable them in your browser settings.</p>
+                        )}
+                        {notificationPermission === 'default' && settings.dailyReminder !== 'none' && (
+                             <p className="text-sm text-slate-500 mt-2">Please allow notifications when prompted.</p>
+                        )}
                     </div>
                     <hr/>
                     <div>

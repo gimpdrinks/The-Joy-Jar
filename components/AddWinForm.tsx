@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Category, Win } from '../types';
 import { useAppContext } from '../contexts/AppContext';
 import Confetti from './Confetti';
@@ -7,9 +7,11 @@ import SliderInput from './SliderInput';
 import Calendar from './Calendar';
 import MultiSelectTagInput from './MultiSelectTagInput';
 import { CalendarIcon, InfoIcon } from './Icons';
+import { ALL_REFLECTION_PROMPTS } from '../constants';
 
 const AddWinForm: React.FC = () => {
-    const { handleAddWin, appState, allTags } = useAppContext();
+    // FIX: Get reflection modal state and setters from context to enable the reflection prompt feature.
+    const { handleAddWin, appState, allTags, isReflectionModalOpen, setIsReflectionModalOpen, currentPrompt, setCurrentPrompt } = useAppContext();
     const { settings, categories } = appState;
 
     const [title, setTitle] = useState('');
@@ -23,6 +25,15 @@ const AddWinForm: React.FC = () => {
     const [cost, setCost] = useState(0);
     const [showCelebration, setShowCelebration] = useState(false);
 
+    // FIX: Add an effect to listen for when the reflection modal closes.
+    // If a prompt was selected, add it to the notes.
+    useEffect(() => {
+        if (!isReflectionModalOpen && currentPrompt) {
+            setNotes(prev => prev ? `${prev}\n\n- ${currentPrompt}` : `- ${currentPrompt}`);
+            setCurrentPrompt(''); // Reset prompt to avoid re-adding
+        }
+    }, [isReflectionModalOpen, currentPrompt, setCurrentPrompt]);
+
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         if (!title) return;
@@ -35,6 +46,11 @@ const AddWinForm: React.FC = () => {
     const handleDateSelect = (selectedDate: string) => {
         setDate(selectedDate);
         setIsCalendarOpen(false);
+    };
+    
+    // FIX: Update the prompt handler to open the interactive ReflectionModal.
+    const handleGetPrompt = () => {
+        setIsReflectionModalOpen(true);
     };
 
     const labelStyle = "block text-base font-semibold text-slate-700 mb-2";
@@ -96,8 +112,13 @@ const AddWinForm: React.FC = () => {
                     <MultiSelectTagInput allTags={allTags} selectedTags={tags} setSelectedTags={setTags} className={inputStyle} />
                 </div>
                 <div>
-                    <label htmlFor="notes" className={labelStyle}>What makes this win special? Tell me more.</label>
-                    <textarea id="notes" value={notes} onChange={e => setNotes(e.target.value)} rows={2} className={`${inputStyle} resize-none`} />
+                    <div className="flex justify-between items-center mb-2">
+                        <label htmlFor="notes" className="block text-base font-semibold text-slate-700">What makes this win special?</label>
+                        <button type="button" onClick={handleGetPrompt} className="text-sm font-semibold text-indigo-600 hover:text-indigo-800 transition-colors">
+                            ✨ Get a reflection prompt
+                        </button>
+                    </div>
+                    <textarea id="notes" value={notes} onChange={e => setNotes(e.target.value)} rows={3} className={`${inputStyle} resize-none`} placeholder="Tell me more, or get a prompt..." />
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6 pt-2">
                      <SliderInput 
