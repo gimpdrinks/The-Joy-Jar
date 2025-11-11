@@ -1,0 +1,82 @@
+import React, { useState } from 'react';
+import { useAppContext } from '../contexts/AppContext';
+import { CloseIcon, TrashIcon } from './Icons';
+import { getTagColorClasses } from '../utils/colorUtils';
+
+const SettingsModal: React.FC = () => {
+    // FIX: Remove geminiKey and setGeminiKey from context, as per guidelines.
+    const { 
+        isOpen, onClose, settings, setSettings, 
+        categories, allTags, 
+        onAddCategory, onDeleteCategory, onDeleteTag 
+    } = {
+        ...useAppContext(),
+        isOpen: useAppContext().isSettingsOpen,
+        onClose: () => useAppContext().setIsSettingsOpen(false),
+        settings: useAppContext().appState.settings,
+        setSettings: useAppContext().handleUpdateSettings,
+        categories: useAppContext().appState.categories,
+        onAddCategory: useAppContext().handleAddCategory,
+        onDeleteCategory: useAppContext().handleDeleteCategory,
+        onDeleteTag: useAppContext().handleDeleteTag,
+    };
+    
+    const [newCategory, setNewCategory] = useState('');
+    if (!isOpen) return null;
+    const inputStyle = "w-full bg-white border border-slate-300 rounded-lg px-4 py-3 text-lg text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors";
+
+    const handleAddCategory = (e: React.FormEvent) => {
+        e.preventDefault();
+        onAddCategory(newCategory);
+        setNewCategory('');
+    };
+
+    return (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={onClose}>
+            <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-2xl m-4" onClick={e => e.stopPropagation()}>
+                <div className="flex justify-between items-center mb-6">
+                    <h2 className="text-2xl font-bold">Settings</h2>
+                    <button onClick={onClose} className="text-slate-500 hover:text-slate-800"><CloseIcon /></button>
+                </div>
+                <div className="space-y-6 max-h-[70vh] overflow-y-auto pr-2">
+                     {/* FIX: Remove Gemini API key input field. */}
+                     <div>
+                        <label htmlFor="ritual-text" className="block text-base font-semibold text-slate-700">Celebration Ritual Text</label>
+                        <input type="text" id="ritual-text" value={settings.ritualText} onChange={e => setSettings({...settings, ritualText: e.target.value})} className={inputStyle} />
+                    </div>
+                    <hr/>
+                    <div>
+                         <h3 className="text-xl font-bold mb-3">Manage Categories</h3>
+                         <form onSubmit={handleAddCategory} className="flex gap-2 mb-3">
+                            <input type="text" value={newCategory} onChange={e => setNewCategory(e.target.value)} placeholder="New category name" className={`${inputStyle} text-base`} />
+                            <button type="submit" className="bg-indigo-600 text-white font-semibold px-4 rounded-lg hover:bg-indigo-700 transition-colors">Add</button>
+                         </form>
+                         <ul className="space-y-2">
+                            {categories.map(cat => (
+                                <li key={cat} className="flex justify-between items-center bg-slate-100 p-2 rounded-md">
+                                    <span className="text-slate-800">{cat}</span>
+                                    {cat !== 'Other' && <button onClick={() => onDeleteCategory(cat)} className="text-red-500 hover:text-red-700"><TrashIcon /></button>}
+                                </li>
+                            ))}
+                         </ul>
+                    </div>
+                    <hr/>
+                    <div>
+                         <h3 className="text-xl font-bold mb-3">Manage Tags</h3>
+                         <p className="text-sm text-slate-500 mb-2">Deleting a tag will remove it from all associated wins.</p>
+                         <ul className="space-y-2">
+                            {allTags.length > 0 ? allTags.map(tag => (
+                                <li key={tag} className="flex justify-between items-center bg-slate-100 p-2 rounded-md">
+                                    <span className={getTagColorClasses(tag) + ' px-2 py-0.5 rounded-full text-sm font-medium'}>{tag}</span>
+                                    <button onClick={() => onDeleteTag(tag)} className="text-red-500 hover:text-red-700"><TrashIcon /></button>
+                                </li>
+                            )) : <p className="text-slate-500">No tags created yet.</p>}
+                         </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+export default SettingsModal;

@@ -1,25 +1,27 @@
 import { GoogleGenAI } from "@google/genai";
 import { Win } from '../types';
 
+// FIX: Update mock response to remove prompt for API key.
 const MOCK_AI_RESPONSE = `This is a sample analysis from your Reflection Coach!
 
 *   **Highlights:** Notice how the AI can pinpoint your most impactful activities, like connecting with friends or completing a big project.
 *   **Repeat next week:** The coach will suggest concrete actions based on your high-mood wins, helping you build positive momentum.
 *   **Watch-outs:** Get gentle nudges on patterns related to spending or effort, helping you stay mindful and balanced.
-*   **One-line mantra:** Your journey of reflection starts here.
-
-Add your Gemini API key in Settings to unlock personalized insights for your real wins!`;
+*   **One-line mantra:** Your journey of reflection starts here.`;
 
 
-export const analyzeWinsWithAI = async (wins: Win[], apiKey: string, range: string): Promise<string> => {
-    if (!apiKey) {
+// FIX: Refactor to use process.env.API_KEY and remove apiKey parameter, per guidelines.
+export const analyzeWinsWithAI = async (wins: Win[], range: string): Promise<string> => {
+    // FIX: Check for process.env.API_KEY instead of passed key.
+    if (!process.env.API_KEY) {
         return Promise.resolve(MOCK_AI_RESPONSE);
     }
     if (wins.length === 0) {
         return "No wins to analyze for this period. What's one small thing you could celebrate today?";
     }
 
-    const ai = new GoogleGenAI({ apiKey });
+    // FIX: Initialize with process.env.API_KEY.
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
     const minimalWinsData = wins.map(({ title, date, category, tags, mood, effort, cost, notes }) => ({
         title, date, category, tags, mood, effort, cost, notes: notes || undefined
@@ -50,8 +52,10 @@ ${JSON.stringify(minimalWinsData, null, 2)}
     } catch (error) {
         console.error("Error calling Gemini API:", error);
         if (error instanceof Error) {
-            return `It seems I had trouble connecting. Please check your API key and network connection.\n(Error: ${error.message})`;
+            // FIX: Remove reference to API key in user-facing error message.
+            return `It seems I had trouble connecting. Please check your network connection.\n(Error: ${error.message})`;
         }
-        return "It seems I had trouble connecting due to an unknown error. Please check your API key and network connection.";
+        // FIX: Remove reference to API key in user-facing error message.
+        return "It seems I had trouble connecting due to an unknown error. Please check your network connection.";
     }
 };
