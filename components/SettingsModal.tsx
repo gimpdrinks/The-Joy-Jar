@@ -13,8 +13,6 @@ const SettingsModal: React.FC = () => {
         handleAddCategory,
         handleDeleteCategory,
         handleDeleteTag,
-        geminiKey,
-        setGeminiKey
     } = useAppContext();
 
     const { settings, categories } = appState;
@@ -42,11 +40,6 @@ const SettingsModal: React.FC = () => {
                     <button onClick={onClose} className="text-slate-500 hover:text-slate-800"><CloseIcon /></button>
                 </div>
                 <div className="space-y-6 max-h-[70vh] overflow-y-auto pr-2">
-                     <div>
-                        <label htmlFor="gemini-key" className="block text-base font-semibold text-slate-700">Your Gemini API Key</label>
-                         <p className="text-sm text-slate-500 mb-2">The key is only stored in memory and is never saved.</p>
-                        <input type="password" id="gemini-key" value={geminiKey} onChange={e => setGeminiKey(e.target.value)} className={inputStyle} />
-                    </div>
                      <div>
                         <label htmlFor="ritual-text" className="block text-base font-semibold text-slate-700">Celebration Ritual Text</label>
                         <input type="text" id="ritual-text" value={settings.ritualText} onChange={e => handleUpdateSettings({...settings, ritualText: e.target.value})} className={inputStyle} />

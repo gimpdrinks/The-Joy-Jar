@@ -4,7 +4,7 @@ import { useAppContext } from '../contexts/AppContext';
 import { analyzeWinsWithAI } from '../services/geminiService';
 
 const StatsPanel: React.FC = () => {
-    const { appState, geminiKey } = useAppContext();
+    const { appState } = useAppContext();
     const { wins } = appState;
 
     const [summary, setSummary] = useState('');
@@ -29,7 +29,7 @@ const StatsPanel: React.FC = () => {
             }
         }
         
-        const result = await analyzeWinsWithAI(winsToAnalyze, rangeLabel, geminiKey);
+        const result = await analyzeWinsWithAI(winsToAnalyze, rangeLabel);
         setSummary(result);
         setIsLoading(false);
     };

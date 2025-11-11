@@ -1,15 +1,12 @@
 import { GoogleGenAI } from "@google/genai";
 import { Win } from '../types';
 
-export const analyzeWinsWithAI = async (wins: Win[], range: string, apiKey: string): Promise<string> => {
-    if (!apiKey) {
-        return "Please provide your Gemini API key in the Settings to use the AI Coach.";
-    }
+export const analyzeWinsWithAI = async (wins: Win[], range: string): Promise<string> => {
     if (wins.length === 0) {
         return "No wins to analyze for this period. What's one small thing you could celebrate today?";
     }
 
-    const ai = new GoogleGenAI({ apiKey });
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
     const minimalWinsData = wins.map(({ title, date, category, tags, mood, effort, cost, notes }) => ({
         title, date, category, tags, mood, effort, cost, notes: notes || undefined
@@ -52,7 +49,7 @@ ${JSON.stringify(minimalWinsData, null, 2)}
     } catch (error) {
         console.error("Error calling Gemini API:", error);
         if (error instanceof Error) {
-            return `It seems I had trouble connecting. Please check your API key and network connection.\n(Error: ${error.message})`;
+            return `It seems I had trouble connecting. Please check the AI configuration and your network connection.\n(Error: ${error.message})`;
         }
         return "It seems I had trouble connecting due to an unknown error. Please check your network connection.";
     }
