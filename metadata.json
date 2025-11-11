@@ -1,0 +1,5 @@
+{
+  "name": "The Joy Jar",
+  "description": "A private, offline-first mini app to log personal wins, reflect on progress, and gain AI-powered insights without needing external validation. All data is stored locally in your browser.",
+  "requestFramePermissions": []
+}
