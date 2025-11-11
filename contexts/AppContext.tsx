@@ -14,7 +14,8 @@ type AppContextType = {
     handleImport: (event: React.ChangeEvent<HTMLInputElement>) => void;
     isSettingsOpen: boolean;
     setIsSettingsOpen: React.Dispatch<React.SetStateAction<boolean>>;
-    // FIX: Remove geminiKey and setGeminiKey as they are no longer needed.
+    geminiKey: string;
+    setGeminiKey: React.Dispatch<React.SetStateAction<string>>;
     timeFilter: TimeFilter;
     setTimeFilter: React.Dispatch<React.SetStateAction<TimeFilter>>;
     searchText: string;
@@ -37,7 +38,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     } = useAppState();
 
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-    // FIX: Remove geminiKey state.
+    const [geminiKey, setGeminiKey] = useState('');
     const [timeFilter, setTimeFilter] = useState<TimeFilter>('today');
     const [searchText, setSearchText] = useState('');
     const [tagFilter, setTagFilter] = useState('');
@@ -72,7 +73,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         handleAddCategory, handleDeleteCategory, handleDeleteTag,
         handleExport, handleImport,
         isSettingsOpen, setIsSettingsOpen,
-        // FIX: Remove geminiKey and setGeminiKey from context value.
+        geminiKey, setGeminiKey,
         timeFilter, setTimeFilter,
         searchText, setSearchText,
         tagFilter, setTagFilter,

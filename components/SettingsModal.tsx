@@ -4,31 +4,34 @@ import { CloseIcon, TrashIcon } from './Icons';
 import { getTagColorClasses } from '../utils/colorUtils';
 
 const SettingsModal: React.FC = () => {
-    // FIX: Remove geminiKey and setGeminiKey from context, as per guidelines.
-    const { 
-        isOpen, onClose, settings, setSettings, 
-        categories, allTags, 
-        onAddCategory, onDeleteCategory, onDeleteTag 
-    } = {
-        ...useAppContext(),
-        isOpen: useAppContext().isSettingsOpen,
-        onClose: () => useAppContext().setIsSettingsOpen(false),
-        settings: useAppContext().appState.settings,
-        setSettings: useAppContext().handleUpdateSettings,
-        categories: useAppContext().appState.categories,
-        onAddCategory: useAppContext().handleAddCategory,
-        onDeleteCategory: useAppContext().handleDeleteCategory,
-        onDeleteTag: useAppContext().handleDeleteTag,
-    };
-    
+    const {
+        isSettingsOpen,
+        setIsSettingsOpen,
+        appState,
+        handleUpdateSettings,
+        allTags,
+        handleAddCategory,
+        handleDeleteCategory,
+        handleDeleteTag,
+        geminiKey,
+        setGeminiKey
+    } = useAppContext();
+
+    const { settings, categories } = appState;
     const [newCategory, setNewCategory] = useState('');
-    if (!isOpen) return null;
+
+    if (!isSettingsOpen) return null;
+
+    const onClose = () => setIsSettingsOpen(false);
+
     const inputStyle = "w-full bg-white border border-slate-300 rounded-lg px-4 py-3 text-lg text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors";
 
-    const handleAddCategory = (e: React.FormEvent) => {
+    const handleAddCategorySubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        onAddCategory(newCategory);
-        setNewCategory('');
+        if (newCategory.trim()) {
+            handleAddCategory(newCategory.trim());
+            setNewCategory('');
+        }
     };
 
     return (
@@ -39,15 +42,19 @@ const SettingsModal: React.FC = () => {
                     <button onClick={onClose} className="text-slate-500 hover:text-slate-800"><CloseIcon /></button>
                 </div>
                 <div className="space-y-6 max-h-[70vh] overflow-y-auto pr-2">
-                     {/* FIX: Remove Gemini API key input field. */}
+                     <div>
+                        <label htmlFor="gemini-key" className="block text-base font-semibold text-slate-700">Your Gemini API Key</label>
+                         <p className="text-sm text-slate-500 mb-2">The key is only stored in memory and is never saved.</p>
+                        <input type="password" id="gemini-key" value={geminiKey} onChange={e => setGeminiKey(e.target.value)} className={inputStyle} />
+                    </div>
                      <div>
                         <label htmlFor="ritual-text" className="block text-base font-semibold text-slate-700">Celebration Ritual Text</label>
-                        <input type="text" id="ritual-text" value={settings.ritualText} onChange={e => setSettings({...settings, ritualText: e.target.value})} className={inputStyle} />
+                        <input type="text" id="ritual-text" value={settings.ritualText} onChange={e => handleUpdateSettings({...settings, ritualText: e.target.value})} className={inputStyle} />
                     </div>
                     <hr/>
                     <div>
                          <h3 className="text-xl font-bold mb-3">Manage Categories</h3>
-                         <form onSubmit={handleAddCategory} className="flex gap-2 mb-3">
+                         <form onSubmit={handleAddCategorySubmit} className="flex gap-2 mb-3">
                             <input type="text" value={newCategory} onChange={e => setNewCategory(e.target.value)} placeholder="New category name" className={`${inputStyle} text-base`} />
                             <button type="submit" className="bg-indigo-600 text-white font-semibold px-4 rounded-lg hover:bg-indigo-700 transition-colors">Add</button>
                          </form>
@@ -55,7 +62,7 @@ const SettingsModal: React.FC = () => {
                             {categories.map(cat => (
                                 <li key={cat} className="flex justify-between items-center bg-slate-100 p-2 rounded-md">
                                     <span className="text-slate-800">{cat}</span>
-                                    {cat !== 'Other' && <button onClick={() => onDeleteCategory(cat)} className="text-red-500 hover:text-red-700"><TrashIcon /></button>}
+                                    {cat !== 'Other' && <button onClick={() => handleDeleteCategory(cat)} className="text-red-500 hover:text-red-700"><TrashIcon /></button>}
                                 </li>
                             ))}
                          </ul>
@@ -68,7 +75,7 @@ const SettingsModal: React.FC = () => {
                             {allTags.length > 0 ? allTags.map(tag => (
                                 <li key={tag} className="flex justify-between items-center bg-slate-100 p-2 rounded-md">
                                     <span className={getTagColorClasses(tag) + ' px-2 py-0.5 rounded-full text-sm font-medium'}>{tag}</span>
-                                    <button onClick={() => onDeleteTag(tag)} className="text-red-500 hover:text-red-700"><TrashIcon /></button>
+                                    <button onClick={() => handleDeleteTag(tag)} className="text-red-500 hover:text-red-700"><TrashIcon /></button>
                                 </li>
                             )) : <p className="text-slate-500">No tags created yet.</p>}
                          </ul>

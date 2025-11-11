@@ -1,45 +1,45 @@
 import { GoogleGenAI } from "@google/genai";
 import { Win } from '../types';
 
-// FIX: Update mock response to remove prompt for API key.
-const MOCK_AI_RESPONSE = `This is a sample analysis from your Reflection Coach!
-
-*   **Highlights:** Notice how the AI can pinpoint your most impactful activities, like connecting with friends or completing a big project.
-*   **Repeat next week:** The coach will suggest concrete actions based on your high-mood wins, helping you build positive momentum.
-*   **Watch-outs:** Get gentle nudges on patterns related to spending or effort, helping you stay mindful and balanced.
-*   **One-line mantra:** Your journey of reflection starts here.`;
-
-
-// FIX: Refactor to use process.env.API_KEY and remove apiKey parameter, per guidelines.
-export const analyzeWinsWithAI = async (wins: Win[], range: string): Promise<string> => {
-    // FIX: Check for process.env.API_KEY instead of passed key.
-    if (!process.env.API_KEY) {
-        return Promise.resolve(MOCK_AI_RESPONSE);
+export const analyzeWinsWithAI = async (wins: Win[], range: string, apiKey: string): Promise<string> => {
+    if (!apiKey) {
+        return "Please provide your Gemini API key in the Settings to use the AI Coach.";
     }
     if (wins.length === 0) {
         return "No wins to analyze for this period. What's one small thing you could celebrate today?";
     }
 
-    // FIX: Initialize with process.env.API_KEY.
-    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    const ai = new GoogleGenAI({ apiKey });
 
     const minimalWinsData = wins.map(({ title, date, category, tags, mood, effort, cost, notes }) => ({
         title, date, category, tags, mood, effort, cost, notes: notes || undefined
     }));
 
     const prompt = `
-You are a kind, practical reflection coach, acting as a private mirror for the user. Your tone is always gentle, positive, and celebratory. Your goal is to provide actionable advice and positive reinforcement.
-Summarize these wins for ${range}. Return EXACTLY 4 bullets, using markdown for bolding:
+You are 'The Joy Jar Coach,' a warm, insightful, and celebratory reflection partner.
+Your tone is 100% positive and gentle. You are not a critic; you are a mirror, helping the user celebrate their progress and find patterns in their own data.
+Your goal is to analyze the user's 'wins' for the given period (${range}) and provide short, actionable insights.
 
-1) **Highlights**: Celebrate 1-2 key achievements. Mention *why* they are significant based on mood, effort, or category (e.g., "Big effort on that work project paid off with a huge mood boost!"). This is for positive reinforcement.
-2) **Repeat Next Week**: Suggest 3 specific, actionable behaviors to carry forward. Base these on high-mood wins. Frame them as encouraging experiments (e.g., "Could you schedule another call with a friend? It clearly lifted your spirits.").
-3) **Watch-outs**: Gently point out a potential pattern related to money, effort, or mood (e.g., high spending, or low-mood streaks). Offer one supportive nudge or question for reflection.
-4) **One-Line Mantra**: A short, inspiring phrase for the week ahead (10 words max).
+Here is how to interpret the data:
+- mood (1-5): 5 is amazing, 1 is just okay. High-mood wins are key.
+- effort (1-5): 5 is max effort. A high-effort, high-mood win is a major success. A high-effort, low-mood win might be a sign of burnout or a task to re-evaluate.
+- category: Shows which life areas (Work, Health, etc.) are getting positive attention.
+- tags: These are the user's own keywords. Look for recurring tags (e.g., 'focus', 'connection', 'fitness') to identify what activities are *really* working for them.
+- cost: Any cost > 0 was a "celebration."
 
-Be specific to the provided data. Keep the total response under 110 words.
+Return your response using markdown.
+Your response must contain EXACTLY 4 sections, with these specific bolded headers:
 
-DATA:
+1. **Highlights**: Celebrate 1-2 *specific* achievements from the data. Connect them directly to \`mood\`, \`effort\`, or \`tags\`. (e.g., "That 'deep-work' tag really paid off, leading to a 5-star mood on your big project!").
+2. **Growth to Repeat**: Suggest 2-3 *specific, actionable* behaviors to carry forward, based *directly* on high-mood wins and recurring \`tags\`. (e.g., "You had two high-mood wins tagged 'connection.' Can you schedule one more call like that next week?").
+3. **Opportunities for Balance**: *Gently* point out one observation for reflection. Frame it as an opportunity, not a problem. (e.g., "I see a lot of high-effort 'Work' wins this week. What's one small 'Health' or 'Relationships' win you could aim for next?").
+4. **One-Line Mantra**: A short, inspiring phrase for the week ahead (10 words max).
+
+Keep the total response under 120 words. Be specific to the data provided below. Do not be generic.
+
+<DATA>
 ${JSON.stringify(minimalWinsData, null, 2)}
+</DATA>
     `;
 
     try {
@@ -52,10 +52,8 @@ ${JSON.stringify(minimalWinsData, null, 2)}
     } catch (error) {
         console.error("Error calling Gemini API:", error);
         if (error instanceof Error) {
-            // FIX: Remove reference to API key in user-facing error message.
-            return `It seems I had trouble connecting. Please check your network connection.\n(Error: ${error.message})`;
+            return `It seems I had trouble connecting. Please check your API key and network connection.\n(Error: ${error.message})`;
         }
-        // FIX: Remove reference to API key in user-facing error message.
         return "It seems I had trouble connecting due to an unknown error. Please check your network connection.";
     }
 };

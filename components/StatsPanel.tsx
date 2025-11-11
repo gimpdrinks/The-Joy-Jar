@@ -4,8 +4,7 @@ import { useAppContext } from '../contexts/AppContext';
 import { analyzeWinsWithAI } from '../services/geminiService';
 
 const StatsPanel: React.FC = () => {
-    // FIX: Remove geminiKey from context as it's no longer needed.
-    const { appState } = useAppContext();
+    const { appState, geminiKey } = useAppContext();
     const { wins } = appState;
 
     const [summary, setSummary] = useState('');
@@ -30,8 +29,7 @@ const StatsPanel: React.FC = () => {
             }
         }
         
-        // FIX: Call analyzeWinsWithAI without the API key argument.
-        const result = await analyzeWinsWithAI(winsToAnalyze, rangeLabel);
+        const result = await analyzeWinsWithAI(winsToAnalyze, rangeLabel, geminiKey);
         setSummary(result);
         setIsLoading(false);
     };
